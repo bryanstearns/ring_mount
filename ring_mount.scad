@@ -7,7 +7,7 @@ siding_angle = 5.7; // degrees
 view_angle = 45; // degrees
 
 show_bell = false; // optionally show the dummy Ring doorbell body for debugging
-wall = 0.04; // inches, wall thickness
+wall = 0.05; // inches, wall thickness
 
 $fn = 500; // use fine gradations on curved surfaces
 epsilon = 0.01; // handy fudge factor for ensuring through-holes
@@ -20,23 +20,23 @@ ring_height = 3.89; // inches
 ring_width = 1.72;
 ring_depth = 0.7;
 ring_back_radius = 0.14;
-ring_screw_diameter = 0.0925;
-ring_screw_length = 0.22;
+ring_screw_diameter = 0.1;
+ring_screw_length = 0.26;
 ring_screw_edge_offset = 0.121;
 ring_screw_body_width = ring_screw_diameter + (wall * 2);
 ring_screw_body_length = ring_screw_length * 1.3;
 frame_height = ring_height + (2 * wall);
 frame_width = ring_width + (2 * wall);
 frame_wire_hole_diameter = 1;
-frame_screw_spacing = 3.5;
+frame_screw_spacing = 3.545;
 frame_screw_diameter = 0.14;
 frame_screw_body_width = frame_screw_diameter + (wall * 4);
 frame_screw_body_length = 0.1;
-frame_screw_access_diameter = frame_screw_diameter + (wall * 2);
+frame_screw_access_diameter = frame_screw_diameter + (wall * 1.6);
 
 // The mounting and wiring holes aren't centered
 frame_hole_x_offset = .02;
-frame_hole_y_offset = -0.1;
+frame_hole_y_offset = -0.11;
 
 module bell() {
     translate([wall, ring_back_radius-ring_depth, wall]) {
@@ -97,9 +97,26 @@ module front_frame() {
       // panel behind ring
       difference() {
         cube([(frame_width - wall) + epsilon, wall + ring_back_radius,  frame_height - epsilon]);
+
+        translate([frame_width / 2, wall + ring_back_radius + epsilon, frame_height * 0.17])
+          rotate([90, 0, 0])
+            scale([0.7, 0.3])
+              cylinder(d=frame_width, h=wall+(2*epsilon));
+
         translate([frame_width / 2, wall + ring_back_radius + epsilon, frame_height * 0.375])
           rotate([90, 0, 0])
-            scale([0.65, 0.4])
+            scale([0.7, 0.4])
+              cylinder(d=frame_width, h=wall+(2*epsilon));
+
+
+        translate([frame_width / 2, wall + ring_back_radius + epsilon, frame_height * 0.6])
+          rotate([90, 0, 0])
+            scale([0.7, 0.4])
+              cylinder(d=frame_width, h=wall+(2*epsilon));
+
+        translate([frame_width / 2, wall + ring_back_radius + epsilon, frame_height * 0.83])
+          rotate([90, 0, 0])
+            scale([0.7, 0.4])
               cylinder(d=frame_width, h=wall+(2*epsilon));
       }
 
@@ -124,7 +141,7 @@ rotate([-90, 0, 0]) { // [-90, 0, 0] for printing
       union() {
         // front frame / sides / top / bottom
         translate([0, thickener * thickener_fudge, 0])
-          rotate([siding_angle, 0, 0])
+          rotate([siding_angle, 0, 0]) {
             translate([-thickener, wall, 0])
               rotate([0, 0, -view_angle])
                 translate([thickener, 0, 0])
@@ -133,19 +150,32 @@ rotate([-90, 0, 0]) { // [-90, 0, 0] for printing
                     front_frame();
                   };
 
+            rotate([180, 0, 0])
+              translate([frame_width * 0.6, 0.5, 0])
+                linear_extrude(0.02)
+                  text("♥", size=0.6);
+
+          }
+
         // upper frame screw body
         translate([0, 0, (frame_height / 2) + (frame_screw_spacing / 2) - frame_screw_body_width])
-          #cube([frame_width, wall, frame_height - frame_screw_spacing + epsilon]);
+          cube([frame_width, wall, frame_height - frame_screw_spacing + wall]);
         translate([frame_mount_x, 0, (frame_height / 2) + (frame_screw_spacing / 2) + frame_hole_y_offset])
           rotate([90, 0, 0])
             cylinder(d=frame_screw_body_width, h=frame_screw_body_length);
 
         // lower frame screw body
-        translate([-0.1, 0, -epsilon])
-          cube([frame_width + 0.05, wall, frame_screw_body_width * 1.25]);
-        translate([frame_mount_x, 0, (frame_height / 2) - (frame_screw_spacing / 2) + frame_hole_y_offset])
-          rotate([90, 0, 0])
-            cylinder(d=frame_screw_body_width, h=frame_screw_body_length);
+        difference() {
+          union() {
+            translate([-0.1, 0, -epsilon])
+              cube([frame_width + 0.05, wall, frame_screw_body_width * 1.25]);
+            translate([frame_mount_x, 0, (frame_height / 2) - (frame_screw_spacing / 2) + frame_hole_y_offset])
+              rotate([90, 0, 0])
+                cylinder(d=frame_screw_body_width, h=frame_screw_body_length);
+          }
+          translate([(frame_width - frame_screw_body_width - wall) / 2, -(frame_screw_body_length + wall), -frame_screw_body_width])
+             cube([frame_screw_body_width, wall * 4, frame_screw_body_width]);
+        }
       }
 
       union() {
